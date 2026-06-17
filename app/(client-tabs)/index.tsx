@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import {
   View,
   Text,
@@ -7,14 +7,11 @@ import {
   TouchableOpacity,
   Dimensions,
   StatusBar,
-  Alert,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import { useAuth } from '@/context/AuthContext';
 import { router } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
-import ContactModal from '@/components/ui/ContactModal';
 
 const { width } = Dimensions.get('window');
 
@@ -40,7 +37,7 @@ function ParkingCard({ area }: { area: ParkingArea }) {
   const statusColor = area.status === 'full' ? '#FF2C55' : '#14C659';
   const fillPercent = area.total > 0 ? ((area.total - area.available) / area.total) * 100 : 100;
   
-  // Choose progress bar colors based on status (as in design)
+  // Choose progress bar colors based on status
   const isFull = area.status === 'full';
   const barBg = isFull ? '#FFC0CB' : '#E8EEF5';
   const barFill = isFull ? '#FFB6C1' : '#2D31A6';
@@ -61,11 +58,31 @@ function ParkingCard({ area }: { area: ParkingArea }) {
   );
 }
 
-// ─── Main Dashboard ────────────────────────────────────────────────────────
-export default function DashboardScreen() {
-  const [contactModalVisible, setContactModalVisible] = useState(false);
-  const { logout } = useAuth();
+// ─── Panduan Step ──────────────────────────────────────────────────────────
+function GuideStep({
+  icon,
+  title,
+  description,
+}: {
+  icon: keyof typeof Ionicons.glyphMap;
+  title: string;
+  description: string;
+}) {
+  return (
+    <View style={styles.guideStep}>
+      <View style={styles.guideIconCircle}>
+        <Ionicons name={icon} size={20} color="#2D31A6" />
+      </View>
+      <View style={styles.guideTextContainer}>
+        <Text style={styles.guideStepTitle}>{title}</Text>
+        <Text style={styles.guideStepDesc}>{description}</Text>
+      </View>
+    </View>
+  );
+}
 
+// ─── Main Dashboard Client ──────────────────────────────────────────────────
+export default function ClientDashboardScreen() {
   return (
     <LinearGradient
       colors={['#D2E4FF', '#FFFFFF', '#D2E4FF']}
@@ -74,6 +91,7 @@ export default function DashboardScreen() {
       <SafeAreaView style={styles.safeArea} edges={['top']}>
         <StatusBar barStyle="dark-content" translucent backgroundColor="transparent" />
 
+        {/* ── Scrollable Content ── */}
         <ScrollView
           style={styles.scrollView}
           contentContainerStyle={styles.scrollContent}
@@ -82,9 +100,9 @@ export default function DashboardScreen() {
         >
           {/* ── Header ── */}
           <View style={styles.header}>
-            <Text style={styles.heroGreeting}>Halo, Satpam!</Text>
+            <Text style={styles.heroGreeting}>Halo, Telyutizen!</Text>
             <Text style={styles.heroSubtitle}>
-              Monitoring area parkir sekitar dengan mudah
+              Pantau tempat parkir anda sebelum datang!
             </Text>
           </View>
 
@@ -92,7 +110,7 @@ export default function DashboardScreen() {
           <View style={styles.section}>
             <View style={styles.sectionHeader}>
               <Text style={styles.sectionTitle}>Lokasi Parkir</Text>
-              <TouchableOpacity activeOpacity={0.7}>
+              <TouchableOpacity activeOpacity={0.7} onPress={() => router.push('/parking-locations')}>
                 <Text style={styles.seeAllText}>Lihat Lainnya</Text>
               </TouchableOpacity>
             </View>
@@ -104,41 +122,64 @@ export default function DashboardScreen() {
             </View>
           </View>
 
-          {/* ── Butuh Bantuan Teknis ── */}
+          {/* ── Lapor Pelanggaran ── */}
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Butuh bantuan teknis ?</Text>
+            <Text style={styles.sectionTitle}>Lapor Pelanggaran</Text>
 
-            <View style={styles.helpCard}>
-              <View style={styles.helpTextContainer}>
-                <Text style={styles.helpTitle}>Hubungi teknisi IT !</Text>
-                <Text style={styles.helpDesc}>
-                  Hubungi teknis IT jika ada kendala pada sistem
+            <View style={styles.reportCard}>
+              <View style={styles.reportTextContainer}>
+                <Text style={styles.reportTitle}>Melihat Pelanggaran Parkir?</Text>
+                <Text style={styles.reportDesc}>
+                  Bantu kami menjaga ketertiban dengan melaporkan pelanggaran parkir liar.
                 </Text>
               </View>
               <TouchableOpacity 
-                style={styles.helpBtn} 
+                style={styles.reportBtn} 
                 activeOpacity={0.85}
-                onPress={() => setContactModalVisible(true)}
+                onPress={() => router.push('/(client-tabs)/report')}
               >
-                <Text style={styles.helpBtnText}>Hubungi</Text>
+                <Text style={styles.reportBtnText}>Lapor</Text>
                 <Ionicons name="chevron-forward" size={16} color="#fff" />
               </TouchableOpacity>
             </View>
           </View>
 
-          <View style={{ height: 120 }} /> {/* Padding bottom for floating tab bar */}
+          {/* ── Panduan Parkir ── */}
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>Panduan Parkir</Text>
+
+            <View style={styles.guideCard}>
+              <GuideStep
+                icon="phone-portrait-outline"
+                title="1. Cek Dashboard"
+                description="Pantau sisa slot parkir secara real-time sebelum memasuki gerbang kampus."
+              />
+              <View style={styles.guideDivider} />
+              <GuideStep
+                icon="card-outline"
+                title="2. Tap KTM/RFID"
+                description="Gunakan Kartu Tanda Mahasiswa (KTM) atau RFID pada reader di palang pintu gerbang."
+              />
+              <View style={styles.guideDivider} />
+              <GuideStep
+                icon="location-outline"
+                title="3. Parkir di Slot"
+                description="Cari area hijau di dashboard dan parkirkan kendaraan tepat di dalam garis."
+              />
+
+              {/* Warning Box */}
+              <View style={styles.warningBox}>
+                <Ionicons name="warning-outline" size={18} color="#EF4444" />
+                <Text style={styles.warningText}>
+                  <Text style={{ fontWeight: '700' }}>DILARANG</Text> parkir di trotoar atau area luar sensor! Pelanggar akan langsung dikenakan sanksi gembok roda.
+                </Text>
+              </View>
+            </View>
+          </View>
+
+          <View style={{ height: 120 }} />
         </ScrollView>
       </SafeAreaView>
-
-      <ContactModal 
-        visible={contactModalVisible}
-        onClose={() => setContactModalVisible(false)}
-        onCall={() => {
-          // Implement call functionality or just close modal
-          setContactModalVisible(false);
-          Alert.alert("Memanggil", "Menghubungi 0812-8283-3664...");
-        }}
-      />
     </LinearGradient>
   );
 }
@@ -186,7 +227,7 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 16,
     fontWeight: '700',
-    color: '#1A1A1A',
+    color: '#1E1B4B',
   },
   seeAllText: {
     fontSize: 12,
@@ -245,7 +286,7 @@ const styles = StyleSheet.create({
     height: '100%',
     borderRadius: 4,
   },
-  helpCard: {
+  reportCard: {
     backgroundColor: '#fff',
     borderRadius: 16,
     padding: 16,
@@ -257,24 +298,23 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.05,
     shadowRadius: 10,
     elevation: 3,
-    marginTop: 8,
   },
-  helpTextContainer: {
+  reportTextContainer: {
     flex: 1,
     marginRight: 16,
   },
-  helpTitle: {
+  reportTitle: {
     fontSize: 14,
     fontWeight: '700',
     color: '#1A1A1A',
     marginBottom: 4,
   },
-  helpDesc: {
+  reportDesc: {
     fontSize: 12,
     color: '#808080',
     lineHeight: 16,
   },
-  helpBtn: {
+  reportBtn: {
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: '#2D31A6',
@@ -283,9 +323,66 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     gap: 4,
   },
-  helpBtnText: {
+  reportBtnText: {
     color: '#fff',
     fontWeight: '600',
     fontSize: 13,
+  },
+  guideCard: {
+    backgroundColor: '#fff',
+    borderRadius: 16,
+    padding: 16,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.05,
+    shadowRadius: 10,
+    elevation: 3,
+  },
+  guideStep: {
+    flexDirection: 'row',
+    gap: 16,
+    paddingVertical: 4,
+  },
+  guideIconCircle: {
+    width: 44,
+    height: 44,
+    borderRadius: 12,
+    backgroundColor: '#F8FAFC',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  guideTextContainer: {
+    flex: 1,
+  },
+  guideStepTitle: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#1E1B4B',
+    marginBottom: 4,
+  },
+  guideStepDesc: {
+    fontSize: 12,
+    color: '#64748B',
+    lineHeight: 18,
+  },
+  guideDivider: {
+    height: 1,
+    backgroundColor: '#F1F5F9',
+    marginVertical: 12,
+  },
+  warningBox: {
+    flexDirection: 'row',
+    backgroundColor: '#FEF2F2',
+    borderRadius: 12,
+    padding: 12,
+    marginTop: 16,
+    gap: 12,
+    alignItems: 'flex-start',
+  },
+  warningText: {
+    flex: 1,
+    fontSize: 12,
+    color: '#EF4444',
+    lineHeight: 18,
   },
 });

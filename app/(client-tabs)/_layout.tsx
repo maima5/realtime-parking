@@ -1,25 +1,11 @@
-import { Tabs, Redirect } from 'expo-router';
+import { Tabs } from 'expo-router';
 import React from 'react';
-import { View, StyleSheet, Platform, TouchableOpacity, ActivityIndicator } from 'react-native';
+import { View, StyleSheet, Platform } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useAuth } from '@/context/AuthContext';
 
-export default function TabLayout() {
+export default function ClientTabLayout() {
   const insets = useSafeAreaInsets();
-  const { isAuthenticated, isLoading } = useAuth();
-
-  if (isLoading) {
-    return (
-      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-        <ActivityIndicator size="large" color="#3B82F6" />
-      </View>
-    );
-  }
-
-  if (!isAuthenticated) {
-    return <Redirect href="/login" />;
-  }
 
   return (
     <View style={styles.container}>
@@ -38,7 +24,7 @@ export default function TabLayout() {
             tabBarIcon: ({ focused }) => (
               <View style={[styles.iconContainer, focused && styles.iconContainerFocused]}>
                 <Ionicons 
-                  name={focused ? "home" : "home-outline"} 
+                  name={focused ? "grid" : "grid-outline"} 
                   size={24} 
                   color={focused ? "#fff" : "#94A3B8"} 
                 />
@@ -47,9 +33,9 @@ export default function TabLayout() {
           }}
         />
         <Tabs.Screen
-          name="explore"
+          name="report"
           options={{
-            title: 'Explore',
+            title: 'Lapor',
             tabBarIcon: ({ focused }) => (
               <View style={[styles.iconContainer, focused && styles.iconContainerFocused]}>
                 <Ionicons 

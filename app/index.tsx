@@ -29,12 +29,12 @@ export default function LandingScreen() {
 
         <PrimaryButton
           label="Mulai Pantau Parkir  →"
-          onPress={() => router.push('/login')}
+          onPress={() => router.push('/(client-tabs)')}
           style={styles.ctaBtn}
         />
 
         <Image
-          source={{ uri: 'https://images.unsplash.com/photo-1506521781263-d8422e82f27a?w=600' }}
+          source={require('@/content/tempatparkir.png')}
           style={styles.heroImage}
           resizeMode="cover"
         />
