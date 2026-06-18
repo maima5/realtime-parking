@@ -33,7 +33,8 @@ function RootNavigator() {
         <Stack.Screen name="(client-tabs)" options={{ headerShown: false }} />
         <Stack.Screen name="parking-locations" options={{ headerShown: false }} />
         <Stack.Screen name="login" options={{ headerShown: false }} />
-        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+        <Stack.Screen name="(satpam-tabs)" options={{ headerShown: false }} />
+        <Stack.Screen name="(admin-tabs)" options={{ headerShown: false }} />
         <Stack.Screen name="modal" options={{ presentation: 'modal', title: 'Modal' }} />
       </Stack>
       <StatusBar style="auto" />

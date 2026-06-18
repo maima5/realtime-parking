@@ -2,73 +2,99 @@ import { Tabs } from 'expo-router';
 import React from 'react';
 import { View, StyleSheet, Platform } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 export default function AdminTabLayout() {
+  const insets = useSafeAreaInsets();
+
   return (
     <View style={styles.container}>
       <Tabs
         screenOptions={{
           headerShown: false,
           tabBarShowLabel: false,
-          tabBarStyle: styles.tabBar,
+          tabBarStyle: [
+            styles.tabBar,
+            { bottom: Math.max(insets.bottom + 16, 24) }
+          ],
           tabBarBackground: () => <View style={styles.tabBarBackground} />,
         }}
       >
+        {/* index.tsx → Manajemen User */}
         <Tabs.Screen
-          name="users"
+          name="index"
           options={{
             title: 'Users',
             tabBarIcon: ({ focused }) => (
               <View style={[styles.iconContainer, focused && styles.iconContainerFocused]}>
-                <Ionicons 
-                  name={focused ? "people" : "people-outline"} 
-                  size={22} 
-                  color={focused ? "#fff" : "#94A3B8"} 
+                <Ionicons
+                  name={focused ? "people" : "people-outline"}
+                  size={22}
+                  color={focused ? "#fff" : "#94A3B8"}
                 />
               </View>
             ),
           }}
         />
+        {/* log-tap.tsx → Log Tap */}
         <Tabs.Screen
           name="log-tap"
           options={{
             title: 'Log Tap',
             tabBarIcon: ({ focused }) => (
               <View style={[styles.iconContainer, focused && styles.iconContainerFocused]}>
-                <Ionicons 
-                  name={focused ? "pulse" : "pulse-outline"} 
-                  size={22} 
-                  color={focused ? "#fff" : "#94A3B8"} 
+                <Ionicons
+                  name={focused ? "pulse" : "pulse-outline"}
+                  size={22}
+                  color={focused ? "#fff" : "#94A3B8"}
                 />
               </View>
             ),
           }}
         />
+        {/* area.tsx → Area Parkir */}
         <Tabs.Screen
-          name="locations"
+          name="area"
           options={{
-            title: 'Locations',
+            title: 'Area',
             tabBarIcon: ({ focused }) => (
               <View style={[styles.iconContainer, focused && styles.iconContainerFocused]}>
-                <Ionicons 
-                  name={focused ? "map" : "map-outline"} 
-                  size={22} 
-                  color={focused ? "#fff" : "#94A3B8"} 
+                <Ionicons
+                  name={focused ? "map" : "map-outline"}
+                  size={22}
+                  color={focused ? "#fff" : "#94A3B8"}
                 />
               </View>
             ),
           }}
         />
+        {/* violation.tsx → Pelanggaran */}
         <Tabs.Screen
-          name="history"
+          name="violation"
           options={{
-            title: 'History',
+            title: 'Violation',
             tabBarIcon: ({ focused }) => (
               <View style={[styles.iconContainer, focused && styles.iconContainerFocused]}>
-                <Ionicons 
-                  name={focused ? "time" : "time-outline"} 
-                  size={22} 
-                  color={focused ? "#fff" : "#94A3B8"} 
+                <Ionicons
+                  name={focused ? "alert-circle" : "alert-circle-outline"}
+                  size={22}
+                  color={focused ? "#fff" : "#94A3B8"}
+                />
+              </View>
+            ),
+          }}
+        />
+        {/* user.tsx → Data Satpam */}
+        <Tabs.Screen
+          name="user"
+          options={{
+            title: 'Satpam',
+            tabBarIcon: ({ focused }) => (
+              <View style={[styles.iconContainer, focused && styles.iconContainerFocused]}>
+                <Ionicons
+                  name={focused ? "shield" : "shield-outline"}
+                  size={22}
+                  color={focused ? "#fff" : "#94A3B8"}
                 />
               </View>
             ),
@@ -86,10 +112,8 @@ const styles = StyleSheet.create({
   },
   tabBar: {
     position: 'absolute',
-    bottom: Platform.OS === 'ios' ? 40 : 24,
-    left: '50%',
-    transform: [{ translateX: -140 }], // Setengah dari width (280/2) agar simetris di tengah
-    width: 280, // Lebih lebar karena menampung 4 ikon
+    left: 20,
+    right: 20,
     height: 64,
     backgroundColor: '#fff',
     borderRadius: 32,

@@ -1,19 +1,24 @@
 import React, { useState } from 'react';
 import {
   View, Text, StyleSheet, SafeAreaView,
-  TouchableOpacity, ScrollView, ActivityIndicator, Alert,
+  TouchableOpacity, ScrollView, ActivityIndicator,
 } from 'react-native';
 import { router } from 'expo-router';
 import { colors } from '@/constants/Colors';
 import InputField from '@/components/ui/InputField';
 import PrimaryButton from '@/components/ui/PrimaryButton';
+import ContactModal from '@/components/ui/ContactModal';
 import { useAuth } from '@/context/AuthContext';
+import * as Linking from 'expo-linking';
+
+const ADMIN_EMAIL = 'admin@parktelu.id';
 
 export default function LoginScreen() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
+  const [isContactModalVisible, setContactModalVisible] = useState(false);
 
   const { login } = useAuth();
 
@@ -28,13 +33,23 @@ export default function LoginScreen() {
 
     try {
       await login({ email, password });
-      // Setelah login berhasil, _layout.tsx akan redirect otomatis ke /(tabs)
-      router.replace('/(tabs)');
+      if (email.trim().toLowerCase() === ADMIN_EMAIL) {
+        router.replace('/(admin-tabs)');
+      } else {
+        router.replace('/(satpam-tabs)');
+      }
     } catch (error: any) {
-      const message =
-        error?.response?.data?.message ||
+      const isTimeout =
+        error?.code === 'ECONNABORTED' ||
+        error?.message?.toLowerCase().includes('timeout') ||
+        error?.message?.toLowerCase().includes('network');
+
+      const message = isTimeout
+        ? 'Koneksi timeout. Pastikan server backend aktif dan IP sudah benar.'
+        : error?.response?.data?.message ||
         error?.message ||
         'Login gagal. Periksa email dan kata sandi.';
+
       setErrorMsg(message);
     } finally {
       setIsLoading(false);
@@ -97,10 +112,19 @@ export default function LoginScreen() {
               Hubungi teknis IT jika ada kendala pada sistem
             </Text>
           </View>
-          <TouchableOpacity style={styles.cardBtn}>
+          <TouchableOpacity 
+            style={styles.cardBtn} 
+            onPress={() => setContactModalVisible(true)}
+          >
             <Text style={styles.cardBtnLabel}>Hubungi  ›</Text>
           </TouchableOpacity>
         </View>
+
+        <ContactModal
+          visible={isContactModalVisible}
+          onClose={() => setContactModalVisible(false)}
+          onCall={() => Linking.openURL('tel:081282833664')}
+        />
       </ScrollView>
     </SafeAreaView>
   );

@@ -27,7 +27,10 @@ export default function TabLayout() {
         screenOptions={{
           headerShown: false,
           tabBarShowLabel: false,
-          tabBarStyle: styles.tabBar,
+          tabBarStyle: [
+            styles.tabBar,
+            { bottom: Math.max(insets.bottom + 16, 24) }
+          ],
           tabBarBackground: () => <View style={styles.tabBarBackground} />,
         }}
       >
@@ -73,10 +76,8 @@ const styles = StyleSheet.create({
   },
   tabBar: {
     position: 'absolute',
-    bottom: Platform.OS === 'ios' ? 40 : 24,
-    left: '50%',
-    transform: [{ translateX: -80 }], // roughly half of the width to center
-    width: 160,
+    left: 20,
+    right: 20,
     height: 64,
     backgroundColor: '#fff',
     borderRadius: 32,
