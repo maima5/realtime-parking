@@ -84,22 +84,6 @@ export default function AdminTabLayout() {
             ),
           }}
         />
-        {/* user.tsx → Data Satpam */}
-        <Tabs.Screen
-          name="user"
-          options={{
-            title: 'Satpam',
-            tabBarIcon: ({ focused }) => (
-              <View style={[styles.iconContainer, focused && styles.iconContainerFocused]}>
-                <Ionicons
-                  name={focused ? "shield" : "shield-outline"}
-                  size={22}
-                  color={focused ? "#fff" : "#94A3B8"}
-                />
-              </View>
-            ),
-          }}
-        />
       </Tabs>
     </View>
   );

@@ -34,9 +34,9 @@ export default function LoginScreen() {
     try {
       await login({ email, password });
       if (email.trim().toLowerCase() === ADMIN_EMAIL) {
-        router.replace('/(admin-tabs)');
+        router.replace('/(admin-tabs)' as any);
       } else {
-        router.replace('/(satpam-tabs)');
+        router.replace('/(satpam-tabs)' as any);
       }
     } catch (error: any) {
       const isTimeout =

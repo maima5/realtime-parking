@@ -11,6 +11,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
+import * as ImagePicker from 'expo-image-picker';
 import ParkingModal from '@/components/ui/ParkingModal';
 
 type ActiveArea = {
@@ -26,13 +27,27 @@ const ACTIVE_AREAS: ActiveArea[] = [
   { id: '3', name: 'Area GKU', slots: 300, type: 'Motor' },
 ];
 
-function AreaInputForm({ label, icon, placeholder }: { label: string; icon: keyof typeof Ionicons.glyphMap; placeholder: string }) {
+function AreaInputForm({
+  label, icon, placeholder, value, onChangeText, hasError
+}: {
+  label: string; icon: keyof typeof Ionicons.glyphMap; placeholder: string;
+  value: string; onChangeText: (text: string) => void; hasError?: boolean;
+}) {
   return (
     <View style={styles.inputGroup}>
-      <Text style={styles.inputLabel}>{label}</Text>
+      <Text style={styles.inputLabel}>
+        {label}
+        {hasError && <Text style={styles.errorAsterisk}> *wajib diisi</Text>}
+      </Text>
       <View style={styles.inputContainer}>
         <Ionicons name={icon} size={18} color="#94A3B8" style={styles.inputIcon} />
-        <TextInput placeholder={placeholder} placeholderTextColor="#94A3B8" style={styles.textInput} />
+        <TextInput
+          placeholder={placeholder}
+          placeholderTextColor="#94A3B8"
+          style={styles.textInput}
+          value={value}
+          onChangeText={onChangeText}
+        />
       </View>
     </View>
   );
@@ -42,8 +57,51 @@ export default function PengaturanAreaScreen() {
   const [showConfirm, setShowConfirm] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
 
+  // Form states
+  const [photoUri, setPhotoUri] = useState<string | null>(null);
+  const [namaArea, setNamaArea] = useState('');
+  const [kapasitas, setKapasitas] = useState('');
+  const [jenisKendaraan, setJenisKendaraan] = useState('');
+  const [submitted, setSubmitted] = useState(false);
+
+  // Validation
+  const errors = {
+    photo: !photoUri,
+    namaArea: namaArea.trim() === '',
+    kapasitas: kapasitas.trim() === '',
+    jenisKendaraan: jenisKendaraan.trim() === '',
+  };
+  const isFormValid = !Object.values(errors).some(Boolean);
+
+  const handleOpenCamera = async () => {
+    const { status } = await ImagePicker.requestCameraPermissionsAsync();
+    if (status !== 'granted') return;
+    const result = await ImagePicker.launchCameraAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: false,
+      quality: 0.85,
+    });
+    if (!result.canceled && result.assets.length > 0) {
+      setPhotoUri(result.assets[0].uri);
+    }
+  };
+
+  const handlePressSave = () => {
+    setSubmitted(true);
+    if (!isFormValid) return;
+    setShowConfirm(true);
+  };
+
   const handleProcessSave = () => {
     setShowConfirm(false);
+    
+    // ── Reset Form setelah berhasil disimpan ──
+    setPhotoUri(null);
+    setNamaArea('');
+    setKapasitas('');
+    setJenisKendaraan('');
+    setSubmitted(false);
+
     setTimeout(() => {
       setShowSuccess(true);
     }, 400);
@@ -64,17 +122,49 @@ export default function PengaturanAreaScreen() {
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>Tambah Area Parkir Baru</Text>
             <View style={styles.formCard}>
-              <Text style={styles.inputLabel}>Upload Foto Lokasi</Text>
-              <TouchableOpacity style={styles.uploadBox} activeOpacity={0.7}>
-                <Ionicons name="camera-outline" size={26} color="#64748B" />
-                <Text style={styles.uploadText}>Ambil Foto Lokasi</Text>
-              </TouchableOpacity>
+              {submitted && !isFormValid && (
+                <View style={styles.globalWarningBox}>
+                  <Ionicons name="warning-outline" size={16} color="#EF4444" />
+                  <Text style={styles.globalWarningText}>
+                    Terdapat field yang belum diisi. Harap lengkapi semua data wajib.
+                  </Text>
+                </View>
+              )}
 
-              <AreaInputForm label="Nama Area Parkir" icon="location-outline" placeholder="Contoh : Area GKU" />
-              <AreaInputForm label="Kapasitas Maksimal Parkir" icon="resize-outline" placeholder="Contoh : 120" />
-              <AreaInputForm label="Jenis Kendaraan" icon="car-outline" placeholder="Contoh : Mobil" />
+              <View style={styles.inputGroup}>
+                <Text style={styles.inputLabel}>
+                  Upload Foto Lokasi
+                  {submitted && errors.photo && (
+                    <Text style={styles.errorAsterisk}> *wajib diisi</Text>
+                  )}
+                </Text>
+                {photoUri ? (
+                  <TouchableOpacity style={styles.uploadBox} activeOpacity={0.7} onPress={handleOpenCamera}>
+                    <Ionicons name="checkmark-circle" size={26} color="#22C55E" />
+                    <Text style={[styles.uploadText, { color: '#22C55E' }]}>Foto Berhasil Diambil (Tap untuk ubah)</Text>
+                  </TouchableOpacity>
+                ) : (
+                  <TouchableOpacity style={styles.uploadBox} activeOpacity={0.7} onPress={handleOpenCamera}>
+                    <Ionicons name="camera-outline" size={26} color="#64748B" />
+                    <Text style={styles.uploadText}>Ambil Foto Lokasi</Text>
+                  </TouchableOpacity>
+                )}
+              </View>
 
-              <TouchableOpacity style={styles.saveBtn} activeOpacity={0.8} onPress={() => setShowConfirm(true)}>
+              <AreaInputForm
+                label="Nama Area Parkir" icon="location-outline" placeholder="Contoh : Area GKU"
+                value={namaArea} onChangeText={setNamaArea} hasError={submitted && errors.namaArea}
+              />
+              <AreaInputForm
+                label="Kapasitas Maksimal Parkir" icon="resize-outline" placeholder="Contoh : 120"
+                value={kapasitas} onChangeText={setKapasitas} hasError={submitted && errors.kapasitas}
+              />
+              <AreaInputForm
+                label="Jenis Kendaraan" icon="car-outline" placeholder="Contoh : Mobil"
+                value={jenisKendaraan} onChangeText={setJenisKendaraan} hasError={submitted && errors.jenisKendaraan}
+              />
+
+              <TouchableOpacity style={styles.saveBtn} activeOpacity={0.8} onPress={handlePressSave}>
                 <Text style={styles.saveBtnText}>Simpan Area Parkir</Text>
               </TouchableOpacity>
             </View>
@@ -123,7 +213,13 @@ const styles = StyleSheet.create({
   formCard: { backgroundColor: '#fff', borderRadius: 24, padding: 20, shadowColor: '#000', shadowOpacity: 0.05, shadowRadius: 10, elevation: 3 },
   inputGroup: { marginBottom: 14 },
   inputLabel: { fontSize: 12, fontWeight: '700', color: '#1A1A1A', marginBottom: 6 },
-  uploadBox: { height: 130, borderWidth: 1.5, borderColor: '#CBD5E1', borderStyle: 'dashed', borderRadius: 16, justifyContent: 'center', alignItems: 'center', backgroundColor: '#F8FAFC', gap: 6, marginBottom: 14 },
+  errorAsterisk: { fontSize: 11, fontWeight: '500', color: '#EF4444', fontStyle: 'italic' },
+  globalWarningBox: {
+    flexDirection: 'row', alignItems: 'center', backgroundColor: '#FEF2F2',
+    padding: 12, borderRadius: 12, marginBottom: 16, gap: 8,
+  },
+  globalWarningText: { flex: 1, fontSize: 12, color: '#EF4444', lineHeight: 18 },
+  uploadBox: { height: 110, borderWidth: 1.5, borderColor: '#CBD5E1', borderStyle: 'dashed', borderRadius: 16, justifyContent: 'center', alignItems: 'center', backgroundColor: '#F8FAFC', gap: 6, marginBottom: 4 },
   uploadText: { fontSize: 12, fontWeight: '700', color: '#64748B' },
   inputContainer: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#F8FAFC', borderWidth: 1, borderColor: '#E2E8F0', borderRadius: 12, paddingHorizontal: 12, height: 44 },
   inputIcon: { marginRight: 8 },

@@ -3,7 +3,7 @@ import axios from 'axios';
 // Base URL backend — gunakan IP lokal komputer saat dev dengan device fisik/Expo Go
 // Emulator Android: http://10.0.2.2:3000
 // iOS Simulator: http://localhost:3000
-const BASE_URL = 'http://192.168.100.136:3000';
+const BASE_URL = 'http://192.168.100.131:3000';
 
 export const apiClient = axios.create({
   baseURL: BASE_URL,

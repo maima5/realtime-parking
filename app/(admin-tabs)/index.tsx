@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
@@ -10,6 +10,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
+import HapusPenggunaModal from '@/components/ui/DeleteUserModal';
 
 type UserAdmin = {
   id: string;
@@ -27,6 +28,8 @@ const USER_DATA: UserAdmin[] = [
 ];
 
 function UserCard({ user }: { user: UserAdmin }) {
+  const [isDeleteModalVisible, setDeleteModalVisible] = useState(false);
+  
   const isAktif = user.status === 'Aktif';
   const statusColor = isAktif ? '#22C55E' : '#64748B';
 
@@ -51,11 +54,24 @@ function UserCard({ user }: { user: UserAdmin }) {
           <Text style={styles.editBtnText}>Edit</Text>
         </TouchableOpacity>
 
-        <TouchableOpacity style={styles.deleteBtn} activeOpacity={0.7}>
+        <TouchableOpacity
+          style={styles.deleteBtn}
+          activeOpacity={0.7}
+          onPress={() => setDeleteModalVisible(true)}
+        >
           <Ionicons name="trash-outline" size={14} color="#fff" style={styles.btnIcon} />
           <Text style={styles.deleteBtnText}>Hapus</Text>
         </TouchableOpacity>
       </View>
+
+      <HapusPenggunaModal
+        visible={isDeleteModalVisible}
+        onClose={() => setDeleteModalVisible(false)}
+        onConfirm={() => {
+          // Dummy confirm action
+          setDeleteModalVisible(false);
+        }}
+      />
     </View>
   );
 }
