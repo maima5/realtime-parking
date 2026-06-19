@@ -10,11 +10,10 @@ import PrimaryButton from '@/components/ui/PrimaryButton';
 import ContactModal from '@/components/ui/ContactModal';
 import { useAuth } from '@/context/AuthContext';
 import * as Linking from 'expo-linking';
-
-const ADMIN_EMAIL = 'admin@parktelu.id';
+import { checkUserRole } from '@/services/api';
 
 export default function LoginScreen() {
-  const [email, setEmail] = useState('');
+  const [nip, setNip] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
@@ -23,8 +22,8 @@ export default function LoginScreen() {
   const { login } = useAuth();
 
   const handleLogin = async () => {
-    if (!email || !password) {
-      setErrorMsg('Email dan kata sandi wajib diisi.');
+    if (!nip || !password) {
+      setErrorMsg('NIP dan kata sandi wajib diisi.');
       return;
     }
 
@@ -32,8 +31,9 @@ export default function LoginScreen() {
     setIsLoading(true);
 
     try {
-      await login({ email, password });
-      if (email.trim().toLowerCase() === ADMIN_EMAIL) {
+      const token = await login({ nip, password });
+      const role = await checkUserRole(token);
+      if (role === 'admin') {
         router.replace('/(admin-tabs)' as any);
       } else {
         router.replace('/(satpam-tabs)' as any);
@@ -48,7 +48,7 @@ export default function LoginScreen() {
         ? 'Koneksi timeout. Pastikan server backend aktif dan IP sudah benar.'
         : error?.response?.data?.message ||
         error?.message ||
-        'Login gagal. Periksa email dan kata sandi.';
+        'Login gagal. Periksa NIP dan kata sandi.';
 
       setErrorMsg(message);
     } finally {
@@ -68,12 +68,12 @@ export default function LoginScreen() {
 
         <View style={styles.form}>
           <InputField
-            label="Alamat Email"
-            placeholder="example@mail.com"
-            keyboardType="email-address"
+            label="NIP (Nomor Induk Pegawai)"
+            placeholder="Masukkan NIP Anda"
+            keyboardType="numeric"
             autoCapitalize="none"
-            value={email}
-            onChangeText={(text) => { setEmail(text); setErrorMsg(''); }}
+            value={nip}
+            onChangeText={(text) => { setNip(text); setErrorMsg(''); }}
           />
           <InputField
             label="Kata Sandi"

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -7,11 +7,13 @@ import {
   TouchableOpacity,
   Image,
   StatusBar,
+  ActivityIndicator,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
+import { getParkingAreasApi, getPhotoUrl } from '@/services/api';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 type ParkingArea = {
@@ -23,37 +25,6 @@ type ParkingArea = {
   status: 'available' | 'full';
   imageUri: string;
 };
-
-// ─── Data ─────────────────────────────────────────────────────────────────────
-const PARKING_AREAS: ParkingArea[] = [
-  {
-    id: '1',
-    name: 'AREA TULT',
-    vehicleType: 'Motor',
-    available: 0,
-    total: 100,
-    status: 'full',
-    imageUri: 'https://images.unsplash.com/photo-1506521781263-d8422e82f27a?w=300&q=80',
-  },
-  {
-    id: '2',
-    name: 'AREA GKU',
-    vehicleType: 'Motor',
-    available: 50,
-    total: 120,
-    status: 'available',
-    imageUri: 'https://images.unsplash.com/photo-1572464491297-2b05b13dc2cb?w=300&q=80',
-  },
-  {
-    id: '3',
-    name: 'AREA FEB',
-    vehicleType: 'Mobil',
-    available: 6,
-    total: 40,
-    status: 'available',
-    imageUri: 'https://images.unsplash.com/photo-1565043589221-1a6fd9ae45c7?w=300&q=80',
-  },
-];
 
 // ─── Parking Area Card ─────────────────────────────────────────────────────
 function ParkingCard({ area }: { area: ParkingArea }) {
@@ -112,6 +83,38 @@ function GuideStep({
 
 // ─── Main Dashboard ────────────────────────────────────────────────────────
 export default function ClientDashboardScreen() {
+  const [parkingAreas, setParkingAreas] = useState<ParkingArea[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [errorMsg, setErrorMsg] = useState('');
+
+  useEffect(() => {
+    const fetchParkingAreas = async () => {
+      try {
+        const response = await getParkingAreasApi();
+        if (response.status && response.data) {
+          const mapped: ParkingArea[] = response.data.map(item => ({
+            id: item.id_area.toString(),
+            name: item.name_area.toUpperCase(),
+            vehicleType: item.location,
+            available: item.slot_tersedia,
+            total: item.kapasitas_total,
+            status: item.slot_tersedia === 0 ? 'full' : 'available',
+            imageUri: getPhotoUrl(item.photo),
+          }));
+          setParkingAreas(mapped);
+        } else {
+          setErrorMsg(response.message || 'Gagal mengambil data parkir.');
+        }
+      } catch (error: any) {
+        console.error('Fetch parking areas error:', error);
+        setErrorMsg('Gagal menyambung ke server.');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchParkingAreas();
+  }, []);
+
   return (
     <LinearGradient
       colors={['#D2E4FF', '#FFFFFF', '#D2E4FF']}
@@ -145,9 +148,24 @@ export default function ClientDashboardScreen() {
               </TouchableOpacity>
             </View>
 
-            {PARKING_AREAS.map((area) => (
-              <ParkingCard key={area.id} area={area} />
-            ))}
+            {isLoading ? (
+              <View style={{ paddingVertical: 24, alignItems: 'center' }}>
+                <ActivityIndicator size="large" color="#2D31A6" />
+                <Text style={{ marginTop: 8, color: '#64748B', fontSize: 13 }}>Memuat data parkir...</Text>
+              </View>
+            ) : errorMsg ? (
+              <View style={{ paddingVertical: 16, paddingHorizontal: 12, backgroundColor: '#FEF2F2', borderRadius: 12, borderLeftWidth: 3, borderLeftColor: '#EF4444' }}>
+                <Text style={{ color: '#B91C1C', fontSize: 12, fontWeight: '500' }}>{errorMsg}</Text>
+              </View>
+            ) : parkingAreas.length === 0 ? (
+              <View style={{ paddingVertical: 24, alignItems: 'center' }}>
+                <Text style={{ color: '#64748B', fontSize: 13 }}>Tidak ada area parkir yang tersedia.</Text>
+              </View>
+            ) : (
+              parkingAreas.slice(0, 3).map((area) => (
+                <ParkingCard key={area.id} area={area} />
+              ))
+            )}
           </View>
 
           {/* Lapor Pelanggaran */}

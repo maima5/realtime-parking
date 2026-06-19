@@ -9,7 +9,7 @@ interface AuthContextType {
   token: string | null;
   isLoading: boolean;
   isAuthenticated: boolean;
-  login: (payload: LoginPayload) => Promise<void>;
+  login: (payload: LoginPayload) => Promise<string>;
   logout: () => Promise<void>;
 }
 
@@ -83,11 +83,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const login = async (payload: LoginPayload) => {
     const response = await loginApi(payload);
-    const newToken = response.token;
+    const newToken = response.data?.token;
+
+    if (!newToken) {
+      throw new Error(response.message || 'Login gagal, token tidak ditemukan.');
+    }
 
     await setStorageItemAsync(TOKEN_KEY, newToken);
     setAuthToken(newToken);
     setToken(newToken);
+    return newToken;
   };
 
   const logout = async () => {

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -7,11 +7,13 @@ import {
   TouchableOpacity,
   Image,
   StatusBar,
+  ActivityIndicator,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
+import { getParkingAreasApi, getPhotoUrl } from '@/services/api';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 type ParkingArea = {
@@ -23,43 +25,6 @@ type ParkingArea = {
   status: 'available' | 'full';
   imageUri: string;
 };
-
-// ─── All Parking Data (multi-page) ───────────────────────────────────────────
-const ALL_PARKING_AREAS: ParkingArea[][] = [
-  // Page 1
-  [
-    { id: '1', name: 'AREA GKU', vehicleType: 'Motor', available: 50, total: 120, status: 'available', imageUri: 'https://images.unsplash.com/photo-1572464491297-2b05b13dc2cb?w=300&q=80' },
-    { id: '2', name: 'AREA FEB', vehicleType: 'Mobil', available: 25, total: 60, status: 'available', imageUri: 'https://images.unsplash.com/photo-1565043589221-1a6fd9ae45c7?w=300&q=80' },
-    { id: '3', name: 'AREA FIK', vehicleType: 'Motor', available: 12, total: 40, status: 'available', imageUri: 'https://images.unsplash.com/photo-1506521781263-d8422e82f27a?w=300&q=80' },
-    { id: '4', name: 'AREA TULT', vehicleType: 'Motor', available: 0, total: 100, status: 'full', imageUri: 'https://images.unsplash.com/photo-1558981806-ec527fa84c39?w=300&q=80' },
-    { id: '5', name: 'AREA RPL', vehicleType: 'Motor', available: 0, total: 60, status: 'full', imageUri: 'https://images.unsplash.com/photo-1558981420-c532902e58b4?w=300&q=80' },
-    { id: '6', name: 'AREA KBN', vehicleType: 'Mobil', available: 12, total: 50, status: 'available', imageUri: 'https://images.unsplash.com/photo-1486006920555-c77dcf18193c?w=300&q=80' },
-  ],
-  // Page 2
-  [
-    { id: '7', name: 'AREA TULT', vehicleType: 'Motor', available: 0, total: 80, status: 'full', imageUri: 'https://images.unsplash.com/photo-1558981806-ec527fa84c39?w=300&q=80' },
-    { id: '8', name: 'AREA GKU', vehicleType: 'Motor', available: 50, total: 120, status: 'available', imageUri: 'https://images.unsplash.com/photo-1572464491297-2b05b13dc2cb?w=300&q=80' },
-    { id: '9', name: 'AREA FEB', vehicleType: 'Mobil', available: 6, total: 40, status: 'available', imageUri: 'https://images.unsplash.com/photo-1565043589221-1a6fd9ae45c7?w=300&q=80' },
-    { id: '10', name: 'AREA TPA', vehicleType: 'Motor', available: 20, total: 60, status: 'available', imageUri: 'https://images.unsplash.com/photo-1506521781263-d8422e82f27a?w=300&q=80' },
-    { id: '11', name: 'AREA RPL', vehicleType: 'Motor', available: 0, total: 60, status: 'full', imageUri: 'https://images.unsplash.com/photo-1558981420-c532902e58b4?w=300&q=80' },
-    { id: '12', name: 'AREA KBN', vehicleType: 'Mobil', available: 12, total: 50, status: 'available', imageUri: 'https://images.unsplash.com/photo-1486006920555-c77dcf18193c?w=300&q=80' },
-  ],
-  // Page 3
-  [
-    { id: '13', name: 'AREA GKU', vehicleType: 'Mobil', available: 8, total: 30, status: 'available', imageUri: 'https://images.unsplash.com/photo-1572464491297-2b05b13dc2cb?w=300&q=80' },
-    { id: '14', name: 'AREA FIK', vehicleType: 'Motor', available: 3, total: 40, status: 'available', imageUri: 'https://images.unsplash.com/photo-1506521781263-d8422e82f27a?w=300&q=80' },
-    { id: '15', name: 'AREA TULT', vehicleType: 'Mobil', available: 0, total: 20, status: 'full', imageUri: 'https://images.unsplash.com/photo-1558981806-ec527fa84c39?w=300&q=80' },
-    { id: '16', name: 'AREA TPA', vehicleType: 'Mobil', available: 15, total: 40, status: 'available', imageUri: 'https://images.unsplash.com/photo-1565043589221-1a6fd9ae45c7?w=300&q=80' },
-  ],
-  // Page 4
-  [
-    { id: '17', name: 'AREA FEB', vehicleType: 'Motor', available: 30, total: 80, status: 'available', imageUri: 'https://images.unsplash.com/photo-1565043589221-1a6fd9ae45c7?w=300&q=80' },
-    { id: '18', name: 'AREA KBN', vehicleType: 'Motor', available: 0, total: 50, status: 'full', imageUri: 'https://images.unsplash.com/photo-1486006920555-c77dcf18193c?w=300&q=80' },
-    { id: '19', name: 'AREA RPL', vehicleType: 'Mobil', available: 5, total: 20, status: 'available', imageUri: 'https://images.unsplash.com/photo-1558981420-c532902e58b4?w=300&q=80' },
-  ],
-];
-
-const TOTAL_PAGES = ALL_PARKING_AREAS.length;
 
 // ─── Parking Card ─────────────────────────────────────────────────────────
 function ParkingCard({ area }: { area: ParkingArea }) {
@@ -98,11 +63,45 @@ function ParkingCard({ area }: { area: ParkingArea }) {
 // ─── Main Screen ──────────────────────────────────────────────────────────
 export default function ParkingLocationsScreen() {
   const [currentPage, setCurrentPage] = useState(1);
+  const [parkingAreas, setParkingAreas] = useState<ParkingArea[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [errorMsg, setErrorMsg] = useState('');
 
-  const areas = ALL_PARKING_AREAS[currentPage - 1] ?? [];
+  useEffect(() => {
+    const fetchParkingAreas = async () => {
+      try {
+        const response = await getParkingAreasApi();
+        if (response.status && response.data) {
+          const mapped: ParkingArea[] = response.data.map(item => ({
+            id: item.id_area.toString(),
+            name: item.name_area.toUpperCase(),
+            vehicleType: item.location,
+            available: item.slot_tersedia,
+            total: item.kapasitas_total,
+            status: item.slot_tersedia === 0 ? 'full' : 'available',
+            imageUri: getPhotoUrl(item.photo),
+          }));
+          setParkingAreas(mapped);
+        } else {
+          setErrorMsg(response.message || 'Gagal mengambil data parkir.');
+        }
+      } catch (error: any) {
+        console.error('Fetch parking areas error:', error);
+        setErrorMsg('Gagal menyambung ke server.');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchParkingAreas();
+  }, []);
+
+  const ITEMS_PER_PAGE = 6;
+  const totalPages = Math.max(1, Math.ceil(parkingAreas.length / ITEMS_PER_PAGE));
+  const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+  const currentAreas = parkingAreas.slice(startIndex, startIndex + ITEMS_PER_PAGE);
 
   const handlePage = (page: number) => {
-    if (page >= 1 && page <= TOTAL_PAGES) setCurrentPage(page);
+    if (page >= 1 && page <= totalPages) setCurrentPage(page);
   };
 
   return (
@@ -138,60 +137,77 @@ export default function ParkingLocationsScreen() {
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>Lokasi Parkir</Text>
 
-            {areas.map((area) => (
-              <ParkingCard key={area.id} area={area} />
-            ))}
+            {isLoading ? (
+              <View style={{ paddingVertical: 40, alignItems: 'center' }}>
+                <ActivityIndicator size="large" color="#2D31A6" />
+                <Text style={{ marginTop: 12, color: '#64748B', fontSize: 13 }}>Memuat area parkir...</Text>
+              </View>
+            ) : errorMsg ? (
+              <View style={{ paddingVertical: 16, paddingHorizontal: 12, backgroundColor: '#FEF2F2', borderRadius: 12, borderLeftWidth: 3, borderLeftColor: '#EF4444' }}>
+                <Text style={{ color: '#B91C1C', fontSize: 12, fontWeight: '500' }}>{errorMsg}</Text>
+              </View>
+            ) : parkingAreas.length === 0 ? (
+              <View style={{ paddingVertical: 40, alignItems: 'center' }}>
+                <Text style={{ color: '#64748B', fontSize: 13 }}>Tidak ada area parkir yang tersedia.</Text>
+              </View>
+            ) : (
+              currentAreas.map((area) => (
+                <ParkingCard key={area.id} area={area} />
+              ))
+            )}
           </View>
 
           {/* Pagination */}
-          <View style={styles.pagination}>
-            <TouchableOpacity
-              style={[styles.pageBtn, currentPage === 1 && styles.pageBtnDisabled]}
-              activeOpacity={0.7}
-              onPress={() => handlePage(currentPage - 1)}
-              disabled={currentPage === 1}
-            >
-              <Ionicons
-                name="chevron-back"
-                size={18}
-                color={currentPage === 1 ? '#CBD5E1' : '#1E1B4B'}
-              />
-            </TouchableOpacity>
-
-            {Array.from({ length: TOTAL_PAGES }, (_, i) => i + 1).map((page) => (
+          {!isLoading && !errorMsg && parkingAreas.length > 0 && (
+            <View style={styles.pagination}>
               <TouchableOpacity
-                key={page}
-                style={[styles.pageNumber, page === currentPage && styles.pageNumberActive]}
+                style={[styles.pageBtn, currentPage === 1 && styles.pageBtnDisabled]}
                 activeOpacity={0.7}
-                onPress={() => handlePage(page)}
+                onPress={() => handlePage(currentPage - 1)}
+                disabled={currentPage === 1}
               >
-                <Text
-                  style={[
-                    styles.pageNumberText,
-                    page === currentPage && styles.pageNumberTextActive,
-                  ]}
-                >
-                  {page}
-                </Text>
+                <Ionicons
+                  name="chevron-back"
+                  size={18}
+                  color={currentPage === 1 ? '#CBD5E1' : '#1E1B4B'}
+                />
               </TouchableOpacity>
-            ))}
 
-            <TouchableOpacity
-              style={[
-                styles.pageBtn,
-                currentPage === TOTAL_PAGES && styles.pageBtnDisabled,
-              ]}
-              activeOpacity={0.7}
-              onPress={() => handlePage(currentPage + 1)}
-              disabled={currentPage === TOTAL_PAGES}
-            >
-              <Ionicons
-                name="chevron-forward"
-                size={18}
-                color={currentPage === TOTAL_PAGES ? '#CBD5E1' : '#1E1B4B'}
-              />
-            </TouchableOpacity>
-          </View>
+              {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                <TouchableOpacity
+                  key={page}
+                  style={[styles.pageNumber, page === currentPage && styles.pageNumberActive]}
+                  activeOpacity={0.7}
+                  onPress={() => handlePage(page)}
+                >
+                  <Text
+                    style={[
+                      styles.pageNumberText,
+                      page === currentPage && styles.pageNumberTextActive,
+                    ]}
+                  >
+                    {page}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+
+              <TouchableOpacity
+                style={[
+                  styles.pageBtn,
+                  currentPage === totalPages && styles.pageBtnDisabled,
+                ]}
+                activeOpacity={0.7}
+                onPress={() => handlePage(currentPage + 1)}
+                disabled={currentPage === totalPages}
+              >
+                <Ionicons
+                  name="chevron-forward"
+                  size={18}
+                  color={currentPage === totalPages ? '#CBD5E1' : '#1E1B4B'}
+                />
+              </TouchableOpacity>
+            </View>
+          )}
 
           <View style={{ height: 40 }} />
         </ScrollView>
