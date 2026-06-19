@@ -54,8 +54,8 @@ function AreaInputForm({
 }
 
 export default function PengaturanAreaScreen() {
-  const [showConfirm, setShowConfirm] = useState(false);
-  const [showSuccess, setShowSuccess] = useState(false);
+  type ModalState = 'none' | 'confirm' | 'success';
+  const [modalState, setModalState] = useState<ModalState>('none');
 
   // Form states
   const [photoUri, setPhotoUri] = useState<string | null>(null);
@@ -89,22 +89,16 @@ export default function PengaturanAreaScreen() {
   const handlePressSave = () => {
     setSubmitted(true);
     if (!isFormValid) return;
-    setShowConfirm(true);
+    setModalState('confirm');
   };
 
   const handleProcessSave = () => {
-    setShowConfirm(false);
-    
-    // ── Reset Form setelah berhasil disimpan ──
     setPhotoUri(null);
     setNamaArea('');
     setKapasitas('');
     setJenisKendaraan('');
     setSubmitted(false);
-
-    setTimeout(() => {
-      setShowSuccess(true);
-    }, 400);
+    setModalState('success');
   };
 
   return (
@@ -194,8 +188,8 @@ export default function PengaturanAreaScreen() {
       </SafeAreaView>
 
       {/* Dialog Modals */}
-      <ParkingModal visible={showConfirm} type="confirm" title="Simpan Area Parkir" message="Pastikan anda sudah mengisi dengan benar!" onConfirm={handleProcessSave} onCancel={() => setShowConfirm(false)} />
-      <ParkingModal visible={showSuccess} type="success" title="Area Parkir Telah Ditambah" message="Area Parkir telah diperbarui di daftar" onClose={() => setShowSuccess(false)} />
+      <ParkingModal visible={modalState === 'confirm'} type="confirm" title="Simpan Area Parkir" message="Pastikan anda sudah mengisi dengan benar!" onConfirm={handleProcessSave} onCancel={() => setModalState('none')} />
+      <ParkingModal visible={modalState === 'success'} type="success" title="Area Parkir Telah Ditambah" message="Area Parkir telah diperbarui di daftar" onClose={() => setModalState('none')} />
     </LinearGradient>
   );
 }

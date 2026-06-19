@@ -10,7 +10,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
-import ActionModal from '@/components/ui/ActionModal';
+import KonfirmasiLaporanModal from '@/components/ui/KonfirmasiLaporanModal';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 type Report = {
@@ -137,7 +137,7 @@ export default function ExploreScreen() {
         </ScrollView>
       </SafeAreaView>
 
-      <ActionModal 
+      <KonfirmasiLaporanModal 
         visible={actionModalVisible}
         onClose={() => setActionModalVisible(false)}
         onConfirm={handleConfirmAction}
